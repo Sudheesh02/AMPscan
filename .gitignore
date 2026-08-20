@@ -30,6 +30,7 @@ research/
 
 # python / notebooks
 __pycache__/
+*.pyc
 *.py[cod]
 *$py.class
 .pytest_cache/

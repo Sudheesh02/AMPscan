@@ -1,4 +1,4 @@
-# AMPscan Streamlit demo (Phase 7)
+# AMPscan: Binary Antimicrobial Peptide Classifier — Streamlit demo
 
 Offline only. No APIs. No training. Loads locked Phase 2–6 artifacts.
 

@@ -1,4 +1,6 @@
-# AMPscan — Homology-Aware Antimicrobial Peptide Classifier
+# AMPscan: Binary Antimicrobial Peptide Classifier
+
+Short name: **AMPscan**
 
 Official SIH title: *AI-Based Protein and Biomolecule Classification Assistant*.
 

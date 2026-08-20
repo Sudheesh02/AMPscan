@@ -167,7 +167,7 @@ def ig_figure(seq: str, ig: np.ndarray, title: str):
 
 
 def page_predict():
-    st.title("AMPscan")
+    st.title("AMPscan: Binary Antimicrobial Peptide Classifier")
     st.caption(
         "Offline demo. Primary score = Platt-calibrated Random Forest. "
         "Secondary = 1D-CNN with temperature T = 1.283. Homology-split models only."
