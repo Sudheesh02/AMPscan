@@ -1,7 +1,7 @@
 # AMPscan: Binary Antimicrobial Peptide Classifier
-
-**Short name:** AMPscan  
-Internal SIH-style hackathon (NIT Raipur, **PS20**). Official problem title: *AI-Based Protein and Biomolecule Classification Assistant*.
+  
+Internal SIH-style hackathon (NIT Raipur, **PS20**). 
+Official problem title: *AI-Based Protein and Biomolecule Classification Assistant*.
 
 [![License: MIT (code)](https://img.shields.io/badge/license-MIT%20(code)-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.12-3776AB.svg)](https://www.python.org/)
