@@ -1,0 +1,36 @@
+{
+  "model_id": "facebook/esm2_t30_150M_UR50D",
+  "frozen": true,
+  "selected_head": "linear",
+  "linear_val_roc_auc": 0.9372062048292362,
+  "mlp_val_roc_auc": null,
+  "val": {
+    "accuracy": 0.8538869809553543,
+    "macro_f1": 0.8538750023395534,
+    "roc_auc": 0.9372062048292362,
+    "pr_auc": 0.940920185275471,
+    "tn": 1382,
+    "fp": 210,
+    "fn": 258,
+    "tp": 1353,
+    "n": 3203
+  },
+  "test": {
+    "accuracy": 0.8761609907120743,
+    "macro_f1": 0.8761438479920732,
+    "roc_auc": 0.9521028418107624,
+    "pr_auc": 0.9515629106341872,
+    "tn": 1396,
+    "fp": 211,
+    "fn": 189,
+    "tp": 1434,
+    "n": 3230
+  },
+  "rf_val_roc_auc": 0.9513491183415527,
+  "rf_test_roc_auc": 0.9514824813345495,
+  "beats_rf_test": true,
+  "lora_eligible_on_val": false,
+  "lora_trained": false,
+  "seed": 42,
+  "batch": 8
+}

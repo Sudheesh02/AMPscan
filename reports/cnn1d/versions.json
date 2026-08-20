@@ -1,0 +1,26 @@
+{
+  "python": "3.12.13",
+  "numpy": "2.5.2",
+  "torch": "2.11.0+cu128",
+  "cuda_available": true,
+  "device": "cuda",
+  "gpu_name": "NVIDIA GeForce RTX 5060 Laptop GPU",
+  "seed": 42,
+  "dropout": 0.2,
+  "homology_val_roc_auc": 0.9542096734448156,
+  "random_val_roc_auc": 0.9710038421329187,
+  "sweep": [
+    {
+      "dropout": 0.2,
+      "val_roc_auc": 0.9542096734448156,
+      "epochs": 16
+    },
+    {
+      "dropout": 0.35,
+      "val_roc_auc": 0.9528063969755669,
+      "epochs": 22
+    }
+  ],
+  "n_params": 105473,
+  "input": "21-channel one-hot (20 AA + X), not ESM"
+}

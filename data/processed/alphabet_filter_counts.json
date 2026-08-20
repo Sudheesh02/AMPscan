@@ -1,0 +1,20 @@
+{
+  "mapping": {
+    "B": "X",
+    "Z": "X",
+    "U": "X",
+    "O": "X",
+    "J": "X"
+  },
+  "allowed_after_map": "ACDEFGHIKLMNPQRSTVWXY",
+  "positives": {
+    "n_mapped": 418,
+    "n_drop_non_aa": 48,
+    "n_kept_after_alphabet": 11411
+  },
+  "negatives": {
+    "n_mapped": 0,
+    "n_drop_non_aa": 0,
+    "n_kept_after_alphabet": 4099
+  }
+}

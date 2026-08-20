@@ -1,0 +1,7 @@
+split,model,method,ece_uncal,ece_cal,brier_uncal,brier_cal,roc_auc_uncal,roc_auc_cal
+homology,rf,platt_on_probability,0.077577,0.023484,0.095796,0.088346,0.951482,0.951482
+homology,esm2_35M_linear,temperature_scaling,0.037608,0.018468,0.095613,0.093778,0.944998,0.944998
+homology,cnn1d,temperature_scaling,0.062389,0.040269,0.099118,0.095704,0.942353,0.942353
+random,rf,platt_on_probability,0.087642,0.015128,0.067748,0.055805,0.979129,0.979129
+random,esm2_35M_linear,temperature_scaling,0.019787,0.019079,0.073253,0.073170,0.965707,0.965707
+random,cnn1d,temperature_scaling,0.035044,0.022569,0.061306,0.059223,0.974904,0.974904

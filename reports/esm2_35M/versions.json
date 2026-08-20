@@ -1,0 +1,16 @@
+{
+  "python": "3.12.13",
+  "numpy": "2.5.2",
+  "sklearn": "1.9.0",
+  "torch": "2.11.0+cu128",
+  "transformers": "5.15.1",
+  "cuda_available": true,
+  "device": "cuda",
+  "gpu_name": "NVIDIA GeForce RTX 5060 Laptop GPU",
+  "seed": 42,
+  "esm_model": "facebook/esm2_t12_35M_UR50D",
+  "pooling": "mean of residue tokens (exclude CLS/EOS/PAD)",
+  "esm_frozen": true,
+  "batch_size": 32,
+  "amp_fp16": true
+}

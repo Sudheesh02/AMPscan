@@ -1,0 +1,109 @@
+{
+  "built": "2026-08-20T02:52:03Z",
+  "model": "models/cnn1d/homology_cnn1d.pt",
+  "method": "captum IntegratedGradients on 21-channel one-hot, baseline=zeros, n_steps=50 (canonical) / 32 (test)",
+  "target": "AMP-class logit (CNN scalar output)",
+  "canonical_membership": {
+    "magainin-2": {
+      "seq": "GIGKFLHSAKKFGKAFVGEIMNS",
+      "in_train": true,
+      "in_val": false,
+      "in_test": false,
+      "train_ids": [
+        "POS_DRAMP_DRAMP02271"
+      ],
+      "notes": {
+        "truncated": false,
+        "mapped": false,
+        "orig_len": 23,
+        "final_len": 23
+      }
+    },
+    "LL-37": {
+      "seq": "LLGDFFRKSKEKIGKEFKRIVQRIKDFLRNLVPRTES",
+      "in_train": true,
+      "in_val": false,
+      "in_test": false,
+      "train_ids": [
+        "POS_DRAMP_DRAMP03571"
+      ],
+      "notes": {
+        "truncated": false,
+        "mapped": false,
+        "orig_len": 37,
+        "final_len": 37
+      }
+    },
+    "melittin": {
+      "seq": "GIGAVLKVLTTGLPALISWIKRKRQQ",
+      "in_train": true,
+      "in_val": false,
+      "in_test": false,
+      "train_ids": [
+        "POS_DRAMP_DRAMP03002"
+      ],
+      "notes": {
+        "truncated": false,
+        "mapped": false,
+        "orig_len": 26,
+        "final_len": 26
+      }
+    }
+  },
+  "truncation_or_mapping": [],
+  "ig_vs_occlusion_pearson": {
+    "magainin-2": 0.8869949845246402,
+    "LL-37": 0.3541407596448295,
+    "melittin": 0.907861843263847
+  },
+  "test_aa_mean_ig": {
+    "AMP": {
+      "A": -0.009940988561015116,
+      "C": 0.40868158019569994,
+      "D": -0.25216669708856165,
+      "E": -0.12409447760859926,
+      "F": 0.09742387314151599,
+      "G": -0.0833388340901201,
+      "H": 0.09229014070360181,
+      "I": 0.16029723734535645,
+      "K": 0.3564847383264565,
+      "L": 0.19173690875472998,
+      "M": -0.6352865668545317,
+      "N": -0.03349836556318516,
+      "P": -0.10024070129515862,
+      "Q": -0.12675738740444947,
+      "R": 0.13044779588322028,
+      "S": -0.07376578014412646,
+      "T": -0.03417207228396145,
+      "V": 0.005542735967250404,
+      "W": 0.5491072195603651,
+      "X": 6.09235515490495,
+      "Y": -0.06554504809257444
+    },
+    "nonAMP": {
+      "A": -0.03018535063698779,
+      "C": 0.1854449486992084,
+      "D": -0.1196412406477974,
+      "E": -0.072611059377168,
+      "F": 0.021842165036706097,
+      "G": -0.0637107667911302,
+      "H": 0.0222161791237793,
+      "I": 0.039697995499141436,
+      "K": 0.055811353244795164,
+      "L": 0.030865662995706405,
+      "M": -1.8292458086383812,
+      "N": -0.05659805075159218,
+      "P": -0.06330967375170153,
+      "Q": -0.06148641419444487,
+      "R": -0.001071188160484932,
+      "S": -0.08332304887496933,
+      "T": -0.0679998021359081,
+      "V": 0.004764912490924461,
+      "W": 0.22485167856039537,
+      "Y": -0.019217218808638057
+    }
+  },
+  "n_test_sequences": 3230,
+  "captum": "0.9.0",
+  "all_three_in_homology_train": true
+}

@@ -1,0 +1,60 @@
+{
+  "positives": {
+    "n_in": 11687,
+    "n_raw": 11687,
+    "n_len": 11459,
+    "n_mapped": 418,
+    "n_drop_non_aa": 48,
+    "n_after_alphabet": 11411,
+    "n_exact_dups_dropped": 733,
+    "n_dedup": 10678,
+    "n_after_conflict": 10678
+  },
+  "negatives": {
+    "n_in": 4173,
+    "n_raw": 4173,
+    "n_len": 4099,
+    "n_mapped": 0,
+    "n_drop_non_aa": 0,
+    "n_after_alphabet": 4099,
+    "n_exact_dups_dropped": 0,
+    "n_dedup": 10678,
+    "imbalanced_considered": {
+      "n_in": 128445,
+      "n_raw": 128445,
+      "n_len": 37851,
+      "n_mapped": 0,
+      "n_drop_non_aa": 0,
+      "n_after_alphabet": 37851,
+      "n_exact_dups_dropped": 0,
+      "n_dedup": 37851
+    },
+    "imbalanced_added": 6579,
+    "n_conflicts_dropped": 19,
+    "n_after_conflict": 10659
+  },
+  "n_conflicts": 19,
+  "n_combined": 21337,
+  "n_pos_final": 10678,
+  "n_neg_final": 10659,
+  "source_used": {
+    "positives": {
+      "source": "DRAMP",
+      "files": [
+        "data/raw/general_amps.fasta"
+      ]
+    },
+    "negatives": {
+      "source": "AMPLIFY",
+      "files": [
+        "data/raw/AMPlify_non_AMP_train_balanced.fa",
+        "data/raw/AMPlify_non_AMP_test_balanced.fa",
+        "data/raw/AMPlify_non_AMP_train_imbalanced.fa",
+        "data/raw/AMPlify_non_AMP_test_imbalanced.fa"
+      ],
+      "imbalanced_added": true,
+      "fallback_uniprot": false,
+      "uniprot_filter": null
+    }
+  }
+}

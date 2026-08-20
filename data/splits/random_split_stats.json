@@ -1,0 +1,26 @@
+{
+  "kind": "random_control",
+  "seed": 42,
+  "note": "Same cleaned sequences as homology split; clusters ignored. Stratified by class.",
+  "fractions": {
+    "train": 0.7,
+    "val": 0.15,
+    "test": 0.15
+  },
+  "train": {
+    "n": 14936,
+    "n_pos": 7475,
+    "n_neg": 7461
+  },
+  "val": {
+    "n": 3201,
+    "n_pos": 1602,
+    "n_neg": 1599
+  },
+  "test": {
+    "n": 3200,
+    "n_pos": 1601,
+    "n_neg": 1599
+  },
+  "assertions_passed": true
+}

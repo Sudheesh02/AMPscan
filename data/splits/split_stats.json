@@ -1,0 +1,36 @@
+{
+  "kind": "homology_cluster",
+  "seed": 42,
+  "mmseqs": {
+    "min_seq_id": 0.3,
+    "c": 0.8,
+    "cov_mode": 1
+  },
+  "fractions": {
+    "train": 0.7,
+    "val": 0.15,
+    "test": 0.15
+  },
+  "clusters": {
+    "total": 9241,
+    "pos_only": 4778,
+    "neg_only": 4391,
+    "mixed": 72
+  },
+  "train": {
+    "n": 14904,
+    "n_pos": 7444,
+    "n_neg": 7460
+  },
+  "val": {
+    "n": 3203,
+    "n_pos": 1611,
+    "n_neg": 1592
+  },
+  "test": {
+    "n": 3230,
+    "n_pos": 1623,
+    "n_neg": 1607
+  },
+  "assertions_passed": true
+}

@@ -1,0 +1,45 @@
+# --- local weights, dumps, caches (stay on disk; never delete) ---
+models/
+data/raw/
+data/processed/embeddings/
+data/processed/features/
+data/processed/cnn1d/
+data/processed/calibration/
+data/splits/mmseqs_tmp/
+data/splits/mmseqs/*.fasta
+archive/
+research/
+
+# sequence dumps (do not vendor DRAMP/AMPlify FASTAs)
+*.fasta
+*.fa
+*.xlsx
+
+# checkpoints / arrays
+*.pt
+*.joblib
+*.npz
+*.ckpt
+*.h5
+*.pkl
+
+# secrets / env
+.env
+.env.*
+.streamlit/secrets.toml
+
+# python / notebooks
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ipynb_checkpoints/
+notebooks/.ipynb_checkpoints/
+
+# huggingface / tooling
+.cache/
+*.Zone.Identifier
+
+# OS
+.DS_Store
+Thumbs.db
