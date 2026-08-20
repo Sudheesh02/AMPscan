@@ -151,7 +151,22 @@ On the laptop only (gitignored): `models/`, `data/raw/`, embeddings, FASTAs, `ar
 
 ---
 
-## Cite the data, not a fake paper
+## References
 
-- DRAMP: Ma et al., *NAR* 2025; Shi et al., *NAR* 2022  
-- AMPlify: Li et al., *BMC Genomics* 2022; Li et al., *BMC Res Notes* 2023  
+These are the **upstream papers we actually used** (data, clustering, encoder, calibration). There is no AMPscan journal article.
+
+1. **Ma T, et al.** DRAMP 4.0: an open-access data repository dedicated to the clinical translation of antimicrobial peptides. *Nucleic Acids Research* 53(D1):D403–D410 (2025). [doi:10.1093/nar/gkae1046](https://doi.org/10.1093/nar/gkae1046) — **AMP sequences (DRAMP General).**
+
+2. **Shi G, et al.** DRAMP 3.0: an enhanced comprehensive data repository of antimicrobial peptides. *Nucleic Acids Research* 50(D1):D488–D496 (2022). [doi:10.1093/nar/gkab651](https://doi.org/10.1093/nar/gkab651)
+
+3. **Li C, Sutherland D, Hammond SA, et al.** AMPlify: attentive deep learning model for discovery of novel antimicrobial peptides effective against WHO priority pathogens. *BMC Genomics* 23:77 (2022). [doi:10.1186/s12864-022-08310-4](https://doi.org/10.1186/s12864-022-08310-4) — **method and negative-class construction.**
+
+4. **Li C, Warren RL, Birol I.** Models and data of AMPlify: a deep learning tool for antimicrobial peptide prediction. *BMC Research Notes* 16:11 (2023). [doi:10.1186/s13104-023-06279-1](https://doi.org/10.1186/s13104-023-06279-1) · data: [10.5281/zenodo.7320306](https://doi.org/10.5281/zenodo.7320306) — **non-AMP FASTAs.**
+
+5. **Lin Z, Akin H, Rao R, et al.** Evolutionary-scale prediction of atomic-level protein structure with a language model. *Science* 379:1123–1130 (2023). [doi:10.1126/science.ade2574](https://doi.org/10.1126/science.ade2574) — **ESM-2** (`esm2_t12_35M_UR50D`, `esm2_t30_150M_UR50D`).
+
+6. **Steinegger M, Söding J.** MMseqs2 enables sensitive protein sequence searching for the analysis of massive data sets. *Nature Biotechnology* 35:1026–1028 (2017). [doi:10.1038/nbt.3988](https://doi.org/10.1038/nbt.3988) — **homology clustering / split.**
+
+7. **Guo C, Pleiss G, Sun Y, Weinberger KQ.** On calibration of modern neural networks. *ICML* (2017). [doi:10.48550/arXiv.1706.04599](https://doi.org/10.48550/arXiv.1706.04599) — **temperature scaling** (CNN / ESM heads).
+
+Data licenses (CC BY 4.0 for DRAMP and AMPlify): [`data/LICENSE_NOTES.md`](data/LICENSE_NOTES.md). Code in this repo is MIT (`LICENSE`).
