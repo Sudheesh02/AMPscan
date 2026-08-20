@@ -1,4 +1,4 @@
-# AMPGuard — Full Study Guide
+# AMPscan — Full Study Guide
 
 Audience: 5th-semester biotech. Goal: understand the project well enough to **say it out loud** and survive judge questions. Numbers below are **locked** from Phases 1–9. Do not invent new ones.
 
@@ -21,7 +21,7 @@ Do **not** retrain anything. Do **not** quote random-split AUC as the main resul
 | | Text |
 | --- | --- |
 | **Official SIH title** | AI-Based Protein and Biomolecule Classification Assistant |
-| **Our title** | **AMPGuard: Homology-Aware Antimicrobial Peptide Classifier** |
+| **Our title** | **AMPscan: Binary Antimicrobial Peptide Classifier** |
 | Official ask | FASTA in; classify sequences into functional/biological categories; confidence; some explainability |
 | Our scope | **Peptides, length 5–100**, binary **AMP vs non-AMP**, homology-aware split, calibrated scores, CNN residue plots |
 
@@ -41,7 +41,7 @@ An **antimicrobial peptide (AMP)** is a short protein chain that can damage micr
 
 The trap: two peptides that **share ancestry** look alike. If you put cousins in both train and test, the model **memorizes the family**, not a general AMP pattern. Accuracy looks 98% and is a lie.
 
-**AMPGuard** asks: given a peptide of 5–100 amino acids, what is P(AMP), after we stopped close homologs from sitting in both train and test? And can we show **which residues** the CNN used, without claiming that is biology?
+**AMPscan** asks: given a peptide of 5–100 amino acids, what is P(AMP), after we stopped close homologs from sitting in both train and test? And can we show **which residues** the CNN used, without claiming that is biology?
 
 It does **not** ask: will this peptide kill MRSA in a mouse?
 
@@ -385,7 +385,7 @@ Freeze the model. Screen sequences **far** from train. Synthesize 20–30. Repor
 ## 14. File map of the repo
 
 ```
-README.md                     AMPGuard title + how to run
+README.md                     AMPscan title + how to run
 app/streamlit_app.py          demo (Predict + Metrics)
 app/README.md                 streamlit command
 scripts/                      reproduction scripts (do not retrain for the pitch)
@@ -412,7 +412,7 @@ archive/                      leftover enzyme/BLAST notes, not the AMP task
 
 ### 90 seconds
 
-“Official SIH title is an AI protein classifier. We scoped it to **AMPGuard**: antimicrobial peptide versus not, length 5 to 100, because that we could finish honestly on an 8 GB laptop.
+“Official SIH title is an AI protein classifier. We scoped it to **AMPscan**: antimicrobial peptide versus not, length 5 to 100, because that we could finish honestly on an 8 GB laptop.
 
 The silent bug in this field is **homology leakage**. We clustered with MMseqs2 at 30% identity, coverage 0.8 on the shorter sequence, and put **whole clusters** in train or test. 21,337 peptides, about 10.7k AMPs from DRAMP, 10.7k non-AMPs from AMPlify. 72 clusters still mix AMP and non-AMP; they stay in one fold.
 

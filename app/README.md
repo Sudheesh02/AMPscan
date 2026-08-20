@@ -1,4 +1,4 @@
-# AMP vs non-AMP Streamlit demo (Phase 7)
+# AMPscan Streamlit demo (Phase 7)
 
 Offline only. No APIs. No training. Loads locked Phase 2–6 artifacts.
 

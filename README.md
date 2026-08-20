@@ -1,4 +1,4 @@
-# AMPGuard — Homology-Aware Antimicrobial Peptide Classifier
+# AMPscan — Homology-Aware Antimicrobial Peptide Classifier
 
 Official SIH title: *AI-Based Protein and Biomolecule Classification Assistant*.
 

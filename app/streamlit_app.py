@@ -167,7 +167,7 @@ def ig_figure(seq: str, ig: np.ndarray, title: str):
 
 
 def page_predict():
-    st.title("AMP vs non-AMP")
+    st.title("AMPscan")
     st.caption(
         "Offline demo. Primary score = Platt-calibrated Random Forest. "
         "Secondary = 1D-CNN with temperature T = 1.283. Homology-split models only."
@@ -319,7 +319,7 @@ The model does not claim de novo AMP discovery, mechanism, or MIC.
 
 
 def main():
-    st.set_page_config(page_title="AMP vs non-AMP", layout="wide")
+    st.set_page_config(page_title="AMPscan", layout="wide")
     page = st.sidebar.radio("Page", ["Predict", "Metrics"])
     st.sidebar.markdown(
         "Offline. No APIs. No training. "
