@@ -1,36 +1,54 @@
 # GitHub snapshot report
 
-**Public name:** **AMPscan** (not AMPGuard).
+**Final public name:** **AMPscan: Binary Antimicrobial Peptide Classifier** (short: **AMPscan**).
 
-**Status:** local commits on `main`. Push requires a GitHub repo named `AMPscan` under `Sudheesh02`. A fine-grained PAT that cannot create repositories will 403 until you create the empty repo in the browser and grant **Contents: Read and write**.
+**Local git:** `main` at `4f4180d` (plus earlier snapshot commits).  
+**Remote configured:** `https://github.com/Sudheesh02/AMPscan.git`  
+**Repo on GitHub:** exists (public, https://github.com/Sudheesh02/AMPscan) — currently empty / not yet containing our commits.  
+**Push result:** **not uploaded.** `git push` failed: `could not read Username for 'https://github.com': terminal prompts disabled`. No token was embedded in remotes, files, or this report.
 
-Intended remote: `https://github.com/Sudheesh02/AMPscan.git`
+Nothing under `models/` or `data/raw/` was deleted. Phase science reports were not rewritten (one title-string fix in `phase_11_report.md` only).
 
-Nothing was deleted on disk.
+## Tracked (eligible for git / will push)
 
-## Files that WILL be pushed
-
-Code, licenses, reports, split **IDs** / stats — not FASTAs or weights:
-
-- `.gitignore`, `LICENSE` (MIT for **code**), `README.md` (title AMPscan)
+- `README.md`, `LICENSE` (MIT for **code** only)
 - `app/`, `scripts/`
+- `reports/**/*.md` plus report plots/PDF already in the snapshot
 - `data/LICENSE_NOTES.md`, `data/data_manifest.json`
+- `data/splits/*_ids.txt`, `split_stats.json`, `cluster_assignments.tsv`, `mmseqs/cluster_cluster.tsv` (IDs)
 - `data/processed/*.json`, `labels.tsv`, `cross_class_conflicts.tsv`
-- `data/splits/*_ids.txt`, `split_stats.json`, `cluster_assignments.tsv`, `mmseqs/cluster_cluster.tsv`
-- `reports/` including study guide PDF
+- `.gitignore`
 
-## Files that stay local via `.gitignore`
+## Gitignored (stay on this laptop)
 
-- `models/`, `data/raw/`, embeddings, features, FASTAs, `*.pt` / `*.joblib` / `*.npz`, `archive/`, `.cache/`
+- `models/`
+- `data/raw/`
+- `data/processed/embeddings/`, `features/`, `cnn1d/`, `calibration/`
+- `data/splits/*.fasta`, `data/splits/mmseqs/*.fasta`
+- `archive/`, `research/`
+- `*.pt`, `*.joblib`, `*.npz`, `*.ckpt`, `*.pyc`, `__pycache__/`
+- `.env`, `.streamlit/secrets.toml`, `.ipynb_checkpoints/`, `*.Zone.Identifier`
 
-## Confirmation
+## Next (you run this; do not paste a PAT in chat)
 
-`reports/`, `models/`, and `data/raw/` remain on the laptop. Phase 1–9 reports were not rewritten except this GitHub note.
-
-## Push commands (after empty public `AMPscan` exists)
+Repo already exists. Authenticate locally, then push:
 
 ```bash
 cd "/home/sudheesh02/SIH TEST"
-git remote set-url origin https://github.com/Sudheesh02/AMPscan.git
+gh auth login
 git push -u origin main
+```
+
+Or SSH:
+
+```bash
+cd "/home/sudheesh02/SIH TEST"
+git remote set-url origin git@github.com:Sudheesh02/AMPscan.git
+git push -u origin main
+```
+
+Or GitHub CLI create-if-needed (only if the empty repo were missing):
+
+```bash
+gh repo create AMPscan --public --source=. --remote=origin --push
 ```
