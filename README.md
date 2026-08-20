@@ -1,8 +1,6 @@
 # AMPscan: Binary Antimicrobial Peptide Classifier
 
-Short name: **AMPscan**
-
-Official SIH title: *AI-Based Protein and Biomolecule Classification Assistant*.
+Official SIH Internal Hackathon (PS20) title: *AI-Based Protein and Biomolecule Classification Assistant*.
 
 **Scope:** peptides of length **5–100 aa**, binary **AMP vs non-AMP**. Not all proteins, not Gene Ontology, not Pfam, not a wet-lab assay.
 
