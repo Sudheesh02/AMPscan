@@ -28,6 +28,11 @@ research/
 .env.*
 .streamlit/secrets.toml
 
+# frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
 # python / notebooks
 __pycache__/
 *.pyc

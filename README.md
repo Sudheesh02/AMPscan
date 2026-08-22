@@ -24,7 +24,8 @@ This article is written as a full walkthrough. It assumes **no** prior knowledge
 - Honest limits: [`reports/LIMITATIONS.md`](reports/LIMITATIONS.md)
 - Mixed AMP / non-AMP clusters: [`reports/mixed_clusters.md`](reports/mixed_clusters.md)
 - Data licenses and raw counts: [`data/LICENSE_NOTES.md`](data/LICENSE_NOTES.md)
-- Streamlit demo notes: [`app/README.md`](app/README.md)
+- Streamlit demo notes (fallback): [`app/README.md`](app/README.md)
+- FastAPI + Next.js UI: [`services/predict_api/README.md`](services/predict_api/README.md) · [`reports/frontend_phase_report.md`](reports/frontend_phase_report.md)
 
 ---
 
@@ -701,22 +702,40 @@ Weights loaded (read-only):
 
 Weights and FASTAs are **not** in the public GitHub snapshot (`.gitignore`). Inference needs the local `models/` and `data/` trees on the machine that trained them.
 
-From the project root, with the `amp-data` conda environment (Python 3.12):
+Primary UI is **one origin: http://localhost:3000**. Next.js serves the site and proxies `/api/*` to FastAPI on :8000. Judges never need to open the API port. Streamlit remains as a fallback.
+
+From the project root, `amp-data` env (Python 3.12 + nodejs):
+
+```bash
+chmod +x scripts/run_web.sh
+./scripts/run_web.sh
+```
+
+Then open **http://localhost:3000** only.
+
+Manual two-process equivalent:
+
+```bash
+uvicorn main:app --app-dir services/predict_api --host 127.0.0.1 --port 8000
+cd frontend && npm run dev
+```
+
+`frontend/.env.local` sets `NEXT_PUBLIC_API_URL=/api`. Dark mode is the default; a Dark/Light toggle sits in the header.
+
+**Fallback (unchanged):**
 
 ```bash
 streamlit run app/streamlit_app.py
 ```
 
-Open the URL Streamlit prints (usually http://localhost:8501).
+**Suggested live path (judges, &lt;2 min)**
 
-**Suggested live path**
-
-1. Paste `GIGKFLHSAKKFGKAFVGEIMNS`.
-2. Click **Predict**.
-3. Point at **RF P(AMP) calibrated** as the number you trust.
-4. **Read the training-set banner out loud.**
-5. Show the heatmap; say it is CNN attribution, not biology.
-6. Open **Metrics**; contrast homology 0.9515 vs random 0.9791.
+1. Open **http://localhost:3000/predict** (or click Classify)
+2. Magainin-2 is prefilled: `GIGKFLHSAKKFGKAFVGEIMNS`. Click **Predict**.
+3. Point at **calibrated RF P(AMP)** as the number you trust.
+4. **Read the yellow training-set banner out loud.**
+5. Show the CNN IG residue bar; say it is attribution, not biology.
+6. Open **Metrics**; contrast homology **0.9515** vs random **0.9791**.
 7. Optional: paste a 200-letter string and show the length error.
 
 ---
@@ -816,7 +835,9 @@ No LoRA, no GO/Pfam/DeepLoc heads, and no further training are part of this snap
 ```text
 README.md                     this article
 LICENSE                       MIT for code only
-app/streamlit_app.py          demo (Predict + Metrics)
+frontend/                     Next.js 14 demo (port 3000)
+services/predict_api/         FastAPI locked inference (port 8000)
+app/streamlit_app.py          Streamlit fallback (Predict + Metrics)
 app/README.md                 streamlit command
 scripts/                      reproduction (do not retrain for a pitch)
 data/LICENSE_NOTES.md         DRAMP / AMPlify licenses and counts
