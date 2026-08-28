@@ -1,0 +1,20 @@
+{
+  "n_total": 22380,
+  "n_pos": 11190,
+  "n_neg": 11190,
+  "n_neg_fragment": 11012,
+  "n_neg_intact": 178,
+  "pos_len_median": 14,
+  "neg_len_median": 14,
+  "len_median_gap": 0,
+  "mmseqs": {
+    "min_seq_id": 0.3,
+    "coverage": 0.8,
+    "cov_mode": 1
+  },
+  "seed": 42,
+  "fasta": "data/splits/dbaasp_ood/cohort2b_fair.fasta",
+  "sha256": "f21747c7c69c906625f8998e87e5d6795d1a0171de13d5084a137667c0b528c2",
+  "limitation": "Most negatives are random windows from unused long UniProt-style non-AMPs, not assayed inactive peptides.",
+  "note": "Fair-ish length-matched Cohort 2b. Do not overwrite locked 0.9515."
+}

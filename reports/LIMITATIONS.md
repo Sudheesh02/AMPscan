@@ -16,6 +16,13 @@
 
 8. **Explainability is model-dependent, not mechanism.** Integrated Gradients on the CNN often highlights K/R and hydrophobic residues, which matches the cationic-amphipathic cartoon. Magainin-2, LL-37, and melittin are **in the homology training set**. IG is not a wet-lab active-site map.
 
-9. **Scope is peptides of length 5–100 with a 20-letter (+X) alphabet.** Full-length proteins, GO terms, Pfam domains, EC numbers, MIC, hemolysis, and in vivo efficacy are **out of scope**. This repo does not include those models and does not promise them.
+9. **Platt calibration does not transfer automatically to external fragment backgrounds.** On the Cohort 2b length-matched DBAASP validation ($N=22,380$), the Platt scaling parameters fit on Cohort 1 over-call AMP at $P \ge 0.5$ (ECE 0.277, accuracy 0.645). In discovery pipelines, users should rely on threshold-invariant ROC ranking or apply operating point triage ($P \ge 0.90$).
+
+10. **Naive external evaluations are easily length-confounded.** Evaluating short synthetic AMPs against unconstrained UniProt leftovers yields a deceptively inflated 0.9935 ROC. In fair length-matched benchmarks (Cohort 2b), AMPscan and competitors perform at ~0.90 ROC.
+
+11. **Windowed proteome scanning is not a whole-protein structural call.** The `/scan` endpoint slides a 5–100 aa window to score local sequence motifs. It does not account for 3D protein folding, tertiary stability, or in vivo enzymatic cleavage sites.
+
+12. **Scope is peptides of length 5–100 with a 20-letter (+X) alphabet.** Pfam domains, EC numbers, MIC regression, and in vivo animal efficacy are **out of scope**.
 
 No LoRA, no GO/Pfam/DeepLoc heads, and no further training are part of this snapshot.
+

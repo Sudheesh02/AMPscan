@@ -1,0 +1,24 @@
+{
+  "n_total": 18152,
+  "n_pos_dbaasp_novel": 11190,
+  "n_neg_matched": 6962,
+  "n_pos_has_d_aa": 1353,
+  "dropped": {
+    "len_or_aa": 1363,
+    "dup": 3805,
+    "exact_ampscan": 5045
+  },
+  "n_dbaasp_homolog_to_train": 2997,
+  "mmseqs": {
+    "min_seq_id": 0.3,
+    "coverage": 0.8,
+    "cov_mode": 1,
+    "target": "data/splits/train.fasta"
+  },
+  "negatives": "AMPlify_non_AMP_train_imbalanced.fa, unused in AMPscan, <30% to train and to DBAASP-novel",
+  "d_aa_note": "DBAASP lowercase (D-aa) case-folded to L-aa for MMseqs/scoring; counted in n_pos_has_d_aa",
+  "seed": 42,
+  "fasta": "data/splits/dbaasp_ood/cohort2.fasta",
+  "sha256": "da128f9aa15023cb582ed768965c5ecd2542cbaa0c4ce2f759466396c8078474",
+  "note": "Independent OOD table. Do not mix into locked 0.9515."
+}

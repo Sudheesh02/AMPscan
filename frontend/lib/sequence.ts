@@ -28,9 +28,16 @@ export const EXAMPLES: { id: string; name: string; seq: string; note: string }[]
     seq: "GIGAVLKVLTTGLPALISWIKRKRQQ",
     note: "homology train",
   },
+  {
+    id: "hCAP-18",
+    name: "hCAP-18 (protein, 170 aa)",
+    seq: "MKTQRDGHSLGRWSLVLLLLGLVMPLAIIAQVLSYKEAVLRAIDGINQRSSDANLYRLLDLDPRPTMDGDPDTPKPVSFTVKETVCPRTTQQSPEDCDFKKDGLVKRCMGTVTLNQARGSFDISCDKDNKRFALLGDFFRKSKEKIGKEFKRIVQRIKDFLRNLVPRTES",
+    note: "protein sliding scan",
+  },
 ];
 
 export const MAGAININ2 = EXAMPLES[0].seq;
+export const HCAP18 = EXAMPLES[3].seq;
 
 export function stripToSequence(raw: string): string {
   const recs = parseRecords(raw);
@@ -82,4 +89,5 @@ export function validateSeq(seq: string): string[] {
   return errors;
 }
 
-export const BATCH_CAP = 10;
+export const BATCH_CAP = 500;
+

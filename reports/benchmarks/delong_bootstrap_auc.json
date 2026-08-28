@@ -1,0 +1,30 @@
+{
+  "method": "paired bootstrap of ROC-AUC difference, 2000 resamples, seed 42",
+  "rf_vs_macrel": {
+    "n": 3182,
+    "auc_a": 0.9505198486779072,
+    "auc_b": 0.9491160695765549,
+    "diff": 0.0014037791013522538,
+    "boot_mean_diff": 0.0013947342338270288,
+    "ci95_lo": -0.004851451126619652,
+    "ci95_hi": 0.00753195622423321,
+    "frac_boot_diff_gt0": 0.6545,
+    "ci_excludes_0": false,
+    "n_boot": 2000,
+    "seed": 42
+  },
+  "rf_vs_amplify": {
+    "n": 3182,
+    "auc_a": 0.9505198486779072,
+    "auc_b": 0.9276791023399611,
+    "diff": 0.022840746337946083,
+    "boot_mean_diff": 0.022790047799142017,
+    "ci95_lo": 0.012731487177455477,
+    "ci95_hi": 0.03236695802962902,
+    "frac_boot_diff_gt0": 1.0,
+    "ci_excludes_0": true,
+    "n_boot": 2000,
+    "seed": 42
+  },
+  "note": "ci_excludes_0 True => difference is distinguishable at ~95%. False => treat as a tie on ranking."
+}

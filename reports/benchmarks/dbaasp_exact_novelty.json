@@ -1,0 +1,13 @@
+{
+  "dbaasp_fasta_records": 24400,
+  "unique_clean_5_100": 19232,
+  "exact_in_ampscan_train": 3378,
+  "exact_in_ampscan_test": 802,
+  "exact_novel": 15052,
+  "novel_rf_n": 15052,
+  "novel_rf_called_amp": 14527,
+  "novel_rf_detection_rate": 0.9651209141642306,
+  "novel_rf_mean_p": 0.9248285266026834,
+  "novel_rf_median_p": 0.982753511424574,
+  "note": "DBAASP entries treated as AMP-like catalog peptides, not a balanced ROC set. Exact identity only (not 30% MMseqs)."
+}

@@ -15,7 +15,17 @@ export type SecondaryScore = {
   calibrated: boolean;
 };
 
+export type NearestTrainMatch = {
+  train_id: string | null;
+  identity: number | null;
+  train_length: number | null;
+  train_label: string | null;
+  exact_match: boolean;
+  note: string;
+};
+
 export type PredictResponse = {
+  id?: string;
   sequence: string;
   length: number;
   valid: boolean;
@@ -30,6 +40,44 @@ export type PredictResponse = {
     aromatic_fraction: number;
     aac_nonzero: Record<string, number>;
   } | null;
+  nearest_train?: NearestTrainMatch | null;
+};
+
+export type PredictBatchResponse = {
+  version: string;
+  n: number;
+  n_valid: number;
+  n_invalid: number;
+  results: PredictResponse[];
+};
+
+export type ScanWindow = {
+  start: number;
+  end: number;
+  seq: string;
+  p_amp: number;
+  label: "AMP" | "non-AMP";
+};
+
+export type ScanSummary = {
+  max_p_amp: number | null;
+  max_start: number | null;
+  max_end: number | null;
+  n_windows_ge_0.5: number;
+  n_windows_ge_0.9: number;
+};
+
+export type ScanResponse = {
+  valid: boolean;
+  errors: string[];
+  sequence_length: number;
+  window: number;
+  step: number;
+  n_windows: number;
+  protein_level_call: boolean;
+  note: string;
+  windows: ScanWindow[];
+  summary: ScanSummary | null;
 };
 
 export type Residue = { pos: number; aa: string; ig: number };
@@ -43,6 +91,37 @@ export type ExplainResponse = {
   matched_train_id: string | null;
   canonical_name: string | null;
   note: string;
+};
+
+export type Cohort2bData = {
+  name: string;
+  locked_headline_remains: number;
+  ampscan_rf: {
+    n: number;
+    roc_auc: number;
+    pr_auc: number;
+    acc_at_0_5: number;
+    mcc: number;
+    ece_15: number;
+  };
+  table: Array<{
+    model: string;
+    n: number;
+    skip: number;
+    accuracy: number;
+    mcc: number;
+    roc_auc: number;
+    pr_auc: number;
+    ece_15: number;
+  }>;
+  ranking: string;
+  platt_transfer: string;
+  do_not_quote: {
+    value: number;
+    why: string;
+  };
+  source: string;
+  recomputed: boolean;
 };
 
 export type MetricsResponse = {
@@ -65,6 +144,7 @@ export type MetricsResponse = {
     ece_cal: number;
     roc_auc: number;
   }>;
+  cohort_2b?: Cohort2bData;
   headline: {
     quote: number;
     model: string;
@@ -81,6 +161,11 @@ export type HealthResponse = {
   version?: string;
   device?: string;
   models_loaded?: Record<string, string | number | boolean>;
+  train_index?: {
+    n: number;
+    path: string;
+    length_delta: number;
+  };
 };
 
 async function parseJson<T>(res: Response): Promise<T> {
@@ -104,6 +189,30 @@ export async function predict(sequence: string): Promise<PredictResponse> {
   return parseJson(res);
 }
 
+export async function predictBatch(
+  sequences: Array<{ id?: string; sequence: string }>
+): Promise<PredictBatchResponse> {
+  const res = await fetch(`${API}/predict-batch`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sequences }),
+  });
+  return parseJson(res);
+}
+
+export async function scanProtein(
+  sequence: string,
+  window: number = 25,
+  step: number = 1
+): Promise<ScanResponse> {
+  const res = await fetch(`${API}/scan`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sequence, window, step }),
+  });
+  return parseJson(res);
+}
+
 export async function explain(sequence: string): Promise<ExplainResponse> {
   const res = await fetch(`${API}/explain`, {
     method: "POST",
@@ -119,3 +228,4 @@ export async function metrics(): Promise<MetricsResponse> {
 }
 
 export { API };
+

@@ -42,10 +42,30 @@ __pycache__/
 .ipynb_checkpoints/
 notebooks/.ipynb_checkpoints/
 
+# external benchmark tools & raw database dumps (stay local)
+AI4AMP_predictor/
+AMPlify/
+AmpGram/
+Antimicrobial-Peptides/
+DBAASP/
+HemoPred/
+hemopi2/
+macrel/
+peptide-prediction-list/
+peptidy/
+sAMPpred-GAT/
+esm/
+
+# documents / raw presentation PDFs
+*.pdf
+
 # huggingface / tooling
 .cache/
 *.Zone.Identifier
+*:Zone.Identifier
+.antigravity/
 
 # OS
 .DS_Store
 Thumbs.db
+

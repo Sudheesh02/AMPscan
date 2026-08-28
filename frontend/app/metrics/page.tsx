@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { metrics, type MetricsResponse } from "@/lib/api";
 
-type Tab = "models" | "split" | "cal";
+type Tab = "models" | "split" | "cal" | "external";
 
 export default function MetricsPage() {
   const [data, setData] = useState<MetricsResponse | null>(null);
@@ -27,10 +27,11 @@ export default function MetricsPage() {
         <p className="mt-3 max-w-2xl text-muted">{data.plain_english}</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat k="Homology RF" v="0.9515" s="ROC-AUC · n = 3230" />
-        <Stat k="Random split RF" v="0.9791" s="clusters ignored" />
+        <Stat k="Random split RF" v="0.9791" s="do not quote · leakage" />
         <Stat k="RF ECE" v="0.078 → 0.023" s="15-bin, Platt" />
+        <Stat k="External 2b RF" v="0.903" s="length-matched DBAASP · fragment negs" />
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -38,6 +39,7 @@ export default function MetricsPage() {
           ["models", "Models"],
           ["split", "Homology vs random"],
           ["cal", "Calibration"],
+          ["external", "External (2b)"],
         ] as const).map(([id, label]) => (
           <button
             key={id}
@@ -61,8 +63,19 @@ export default function MetricsPage() {
             cols={["model", "accuracy", "macro-F1", "ROC-AUC", "PR-AUC"]}
             rows={data.homology_test.map((r) => [r.model, f(r.accuracy), f(r.macro_f1), f(r.roc_auc), f(r.pr_auc)])}
           />
-          <Fig src="/figures/roc_homology_test.png" cap="Homology-test ROC (locked)" />
-          <Fig src="/figures/cm_homology_rf_test.png" cap="RF confusion matrix, homology test" />
+          <div className="rounded-xl border p-4 text-sm leading-relaxed text-muted" style={{ borderColor: "var(--line)" }}>
+            <p className="font-semibold text-text">Operating Points & Statistical Ranking (Cohort 1 Test, N=3230):</p>
+            <p className="mt-1">
+              • <strong>Threshold Triage:</strong> At default P ≥ 0.50, AMPscan RF achieves 87.5% precision / 88.0% recall. For peptide discovery screens where AMPs are rare, raising threshold to <strong>P ≥ 0.90</strong> delivers <strong>97.4% precision</strong> and <strong>98.3% specificity</strong> (1,059 candidates selected).
+            </p>
+            <p className="mt-1">
+              • <strong>AMPscan vs Macrel:</strong> Paired bootstrap on common sequences (N=3182) shows ΔROC = +0.0014 with 95% CI [-0.0049, 0.0075]. The CI includes 0, confirming a statistical <strong>tie on discriminative ranking</strong>, while AMPscan cleanly wins on probability calibration (<strong>ECE 0.023 vs 0.204</strong>).
+            </p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Fig src="/figures/01_cohort1_roc.png" cap="Multi-tool SOTA ROC benchmark (AMPscan vs Macrel, AMPlify, AI4AMP, AmpGram)" />
+            <Fig src="/figures/cm_homology_rf_test.png" cap="RF confusion matrix, homology test" />
+          </div>
         </div>
       )}
 
@@ -72,9 +85,15 @@ export default function MetricsPage() {
             cols={["model", "accuracy", "ROC-AUC"]}
             rows={data.random_test.map((r) => [r.model, f(r.accuracy), f(r.roc_auc)])}
           />
+          <div className="rounded-xl border p-4 text-sm text-muted" style={{ borderColor: "var(--line)" }}>
+            <strong className="text-text">Why this gap matters:</strong> Random splitting scatters
+            similar peptides across train and test, inflating ROC-AUC to ~0.979. Homology clustering
+            (30% identity threshold) keeps entire peptide families together, revealing the true
+            generalization performance of 0.9515.
+          </div>
           <div className="grid gap-4 md:grid-cols-2">
-            <Fig src="/figures/roc_homology_test.png" cap="Homology ROC" />
-            <Fig src="/figures/roc_random_test.png" cap="Random-split ROC" />
+            <Fig src="/figures/roc_homology_test.png" cap="Homology-split ROC (honest evaluation)" />
+            <Fig src="/figures/roc_random_test.png" cap="Random-split ROC (homology leakage demo)" />
           </div>
         </div>
       )}
@@ -89,6 +108,56 @@ export default function MetricsPage() {
             <Fig src="/figures/reliability_homology_rf_test.png" cap="RF reliability (Platt)" />
             <Fig src="/figures/reliability_homology_cnn_test.png" cap="CNN reliability (T)" />
           </div>
+        </div>
+      )}
+
+      {tab === "external" && (
+        <div className="space-y-6">
+          <div className="rounded-xl border p-5 text-sm leading-relaxed text-muted space-y-3" style={{ borderColor: "var(--line)" }}>
+            <p className="font-semibold text-text text-base">Cohort 2b — Length-Matched External DBAASP OOD Validation</p>
+            <p>
+              • <strong>Locked Baseline Unaltered:</strong> Locked AMPscan v1 headline metric remains Cohort 1 Homology RF <strong>ROC-AUC 0.9515</strong>.
+            </p>
+            <p>
+              • <strong>Benchmark Scope:</strong> Cohort 2b evaluates <strong>N = 22,380</strong> total sequences (11,190 novel synthetic DBAASP positives with &lt;30% identity to train vs 11,190 length-matched negative controls; median length 14 aa vs 14 aa).
+            </p>
+            <p>
+              • <strong>Negative Sample Provenance:</strong> Negatives are <strong>windows cut from unused long UniProt-style non-AMP chains</strong> (11,012 fragment windows + 178 intact short non-AMPs), not experimentally assayed inactives.
+            </p>
+            <p>
+              • <strong>Honest Calibration Transfer:</strong> At P ≥ 0.5 on Cohort 2b, RF accuracy is <strong>0.645</strong> and ECE is <strong>0.28</strong>. Platt scaling parameters fitted on natural DRAMP/AMPlify sets do not transfer directly to short fragment background distributions; quote threshold-invariant ROC.
+            </p>
+            <p>
+              • <strong>Cross-Tool Parity:</strong> On Cohort 2b, discriminative ranking between tools is a statistical <strong>tie</strong> (~0.90 ROC): <strong>AMPscan RF 0.9030</strong>, <strong>Macrel 0.8998</strong>, <strong>AMPlify 0.8991</strong>, <strong>AI4AMP 0.8786</strong>.
+            </p>
+            <p className="text-xs text-warn">
+              * Note: Do not quote the earlier length-confounded 0.9935 table (which paired 14-aa DBAASP synthetics against 76-aa UniProt leftovers).
+            </p>
+          </div>
+          <Table
+            cols={["model", "evaluated N", "tool skips", "accuracy @ 0.5", "MCC", "ROC-AUC", "PR-AUC", "ECE-15"]}
+            rows={
+              data.cohort_2b?.table
+                ? data.cohort_2b.table.map((r) => [
+                    r.model,
+                    String(r.n),
+                    r.skip ? `${r.skip} (X)` : "0",
+                    f(r.accuracy),
+                    f(r.mcc),
+                    f(r.roc_auc),
+                    f(r.pr_auc),
+                    f(r.ece_15),
+                  ])
+                : [
+                    ["AMPscan RF (Platt)", "22380", "0", "0.6449", "0.3765", "0.9030", "0.9205", "0.2767"],
+                    ["AMPscan 1D-CNN (T)", "22380", "0", "0.6162", "0.3235", "0.8894", "0.9117", "0.3044"],
+                    ["Macrel ONNX", "20426", "1954 (X)", "0.8222", "0.6554", "0.8998", "0.9017", "0.1058"],
+                    ["AMPlify balanced", "20426", "1954 (X)", "0.8216", "0.6421", "0.8991", "0.9075", "0.0867"],
+                    ["AI4AMP PC6", "22380", "0", "0.8081", "0.6287", "0.8786", "0.9031", "0.0870"],
+                  ]
+            }
+          />
+          <Fig src="/figures/02b_cohort2b_roc.png" cap="Cohort 2b ROC — Length-matched DBAASP OOD (fragment negatives)" />
         </div>
       )}
     </div>

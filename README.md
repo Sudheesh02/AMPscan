@@ -587,16 +587,67 @@ Cluster split as above. Test **n = 3,230**.
 
 ESM-2 150M vs RF: **Δ +0.0006** → **tie**. 150M val ROC-AUC was **0.9372**, so LoRA was **not** run.
 
+---
+
+### SOTA Multi-Tool Benchmark (Cohort 1 Homology Test, n = 3,230)
+
+We evaluated 4 external published AMP tools under independent environments on our locked test set:
+
+| Model / Tool | Architecture | Evaluated n | Skips | Accuracy | Macro-F1 | ROC-AUC | PR-AUC | $\text{ECE}_{15}$ | Throughput (seq/s) |
+| :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| **AMPscan RF (Platt)** | 425-D Tabular RF | 3,230 | **0** | **0.8765** | **0.8765** | **0.9515** | **0.9542** | **0.0235** | 28.6 |
+| **AMPscan 1D-CNN (T)** | 21x100 Grid + Temp | 3,230 | **0** | 0.8650 | 0.8648 | **0.9424** | 0.9465 | 0.0403 | 28.6 |
+| **Macrel ONNX** | 22-D PhysChem RF | 3,182 | 48 (X) | 0.7854 | 0.7754 | **0.9491** | 0.9503 | 0.2035 | **6,601.7** |
+| **AMPlify balanced** | 5-Fold BiLSTM + Attn | 3,182 | 48 (X) | 0.8558 | 0.8534 | **0.9277** | 0.9450 | 0.1183 | 14.9 |
+| **AI4AMP PC6** | 1D-CNN-LSTM on PC6 | 3,230 | **0** | 0.7449 | 0.7431 | **0.7905** | 0.8288 | 0.1535 | 572.5 |
+| **AmpGram** | 2-Stage RF on n-grams | 3,001 | 229 | 0.7234 | 0.7234 | **0.7898** | 0.8265 | 0.1643 | 0.93 |
+
+**Paired Bootstrap Significance ($N=3,182$ common):**
+- **vs. Macrel**: $\Delta\text{ROC} = +0.0014$, 95% CI $[-0.0049, +0.0075]$ (statistical tie on discriminative ranking; AMPscan wins on calibration **ECE 0.023 vs 0.204**).
+- **vs. AMPlify**: $\Delta\text{ROC} = +0.0228$, 95% CI $[0.0127, 0.0324]$ (statistically significant win over AMPlify on strict homology clusters).
+
+---
+
+### External OOD Benchmark: Cohort 2b (Length-Matched DBAASP, n = 22,380)
+
+Evaluated on 11,190 novel synthetic DBAASP AMPs vs 11,190 length-matched UniProt fragment windows ($<30\%$ MMseqs2 identity to train; median length 14 aa vs 14 aa):
+
+| Model | Evaluated n | Skips | Accuracy @ 0.5 | MCC | ROC-AUC | PR-AUC | $\text{ECE}_{15}$ |
+| :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| **AMPscan RF (Platt)** | 22,380 | 0 | 0.6449 | 0.3765 | **0.9030** | 0.9205 | 0.2767 |
+| **Macrel ONNX** | 20,426 | 1954 (X) | 0.8222 | 0.6554 | **0.8998** | 0.9017 | 0.1058 |
+| **AMPlify balanced** | 20,426 | 1954 (X) | 0.8216 | 0.6421 | **0.8991** | 0.9075 | 0.0867 |
+| **AI4AMP PC6** | 22,380 | 0 | 0.8081 | 0.6287 | **0.8786** | 0.9031 | 0.0870 |
+
+> [!NOTE]
+> **Key Takeaway**: Cross-tool ranking remains a statistical tie at ~0.90 ROC. Platt calibration parameters fit on natural DRAMP sets do not transfer directly to short fragment background distributions ($P \ge 0.5$ accuracy is 0.645); use threshold-invariant ROC ranking. The earlier unconstrained 0.9935 table was length-confounded (14 aa vs 76 aa).
+
+---
+
+### Discovery Triage & Operating Points
+
+In peptide discovery screens where AMPs are rare, raising the classification threshold provides high-precision candidates:
+
+| Model | Threshold $P \ge$ | Candidates Selected | Precision | Recall | Specificity |
+| :--- | ---: | ---: | ---: | ---: | ---: |
+| **AMPscan RF (Platt)** | 0.50 | 1,632 | 0.875 | 0.880 | 0.873 |
+| **AMPscan RF (Platt)** | 0.80 | 1,255 | 0.948 | 0.733 | 0.960 |
+| **AMPscan RF (Platt)** | **0.90** | **1,059** | **0.974** | **0.635** | **0.983** |
+| **AMPscan RF (Platt)** | 0.95 | 863 | 0.987 | 0.525 | 0.993 |
+
+---
+
 **Random-split test (leakage control only — do not lead with these)**
 
 | Model | ROC-AUC |
-| --- | ---: |
+| :--- | ---: |
 | Random Forest | **0.9791** |
 | Frozen ESM-2 35M | 0.9657 |
 | 1D-CNN | 0.9749 |
 
 > [!IMPORTANT]
 > **Quote 0.9515.** If someone quotes 0.979, they are quoting the leaky split.
+
 
 Spoken line: *“On this task the expensive embedding is a tie with a forest on charge and composition. We still keep ESM as a check. We ship the RF.”*
 
@@ -675,28 +726,28 @@ None of them are in val/test. Showing a pretty heatmap on a training sequence is
 
 ---
 
-## The Streamlit demo
+## The Web Application & API (v1.1)
 
-Offline. No APIs. No training button. Pages:
+AMPscan provides a dual interface: a flagship **Next.js 14 web application** (port 3000) powered by a high-throughput **FastAPI inference service** (port 8000), alongside an offline Streamlit fallback (port 8501).
 
-| Page | What it is |
-| --- | --- |
-| **Predict** | Paste a sequence or upload FASTA (cap 50). Primary: Platt RF P(AMP). Secondary: CNN P(AMP) after T = 1.283. Per-sequence CNN IG heatmap. Banner if the sequence is magainin-2 / LL-37 / melittin. |
-| **Metrics** | Locked homology vs random tables, ECE before/after, limitations paragraph. |
+### Flagship Next.js 14 Workbench (`/predict`)
 
-Also printed on Predict: length, net charge at pH 7, GRAVY — the same cheap chemistry the forest uses, so a judge can see “this peptide is short, cationic, modest GRAVY” without opening a spreadsheet.
+- **Calibrated Primary Score**: Platt-calibrated Random Forest $P(\text{AMP})$ with secondary Temperature-scaled 1D-CNN.
+- **In-Memory Nearest-Neighbor Matching (`TrainIndex`)**: Compares queries against all 14,904 homology-train sequences in $<0.3$ ms, flagging exact matches and computing % identity so users can distinguish generalization from memorization.
+- **High-Throughput Batch Scoring (`/predict-batch`)**: Paste up to **500 multi-FASTA sequences** with instant single-roundtrip vectorized scoring.
+- **Whole-Protein Sliding-Window Scanner (`/scan`)**: Automatically scans proteins $>100$ aa (up to 5,000 aa) to map active antimicrobial domains (e.g. locating LL-37 in 170-aa hCAP-18).
+- **Interactive Mutation Workbench**: Click any residue on the CNN Integrated Gradients track to test *in silico* point mutations in real time.
 
-Garbage strings and 200-aa proteins should **error**. That is a feature.
+### Scientific Evidence Dashboard (`/metrics`)
 
-Weights loaded (read-only):
-
-- `models/baseline/homology_rf.joblib`
-- `models/calibration/homology_rf_platt.json` (`a`, `b` above)
-- `models/cnn1d/homology_cnn1d.pt`
-- `models/calibration/homology_cnn_temperature.json`
-- `reports/explain/heatmap_*.png` for the three canonical peptides
+- **4 Comparative Tabs**:
+  1. **Models**: Homology-held-out metrics, paired bootstrap significance vs. Macrel and AMPlify, and multi-tool ROC comparison.
+  2. **Homology vs. Random**: Demonstrates the ~0.979 vs 0.9515 leakage gap.
+  3. **Calibration**: Pre- and post-calibration reliability diagrams (ECE $0.078 \rightarrow 0.023$).
+  4. **External (2b)**: 22,380 length-matched DBAASP synthetic OOD validation and operating point triage ($P \ge 0.90$).
 
 ---
+
 
 ## How to run the demo
 
