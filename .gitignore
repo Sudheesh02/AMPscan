@@ -69,3 +69,7 @@ esm/
 .DS_Store
 Thumbs.db
 
+# intermediate benchmark scratch & alignments
+reports/benchmarks/cache/**/*.m8
+reports/benchmarks/cache/**/*.fasta
+reports/benchmarks/cache/**/tmp_*
