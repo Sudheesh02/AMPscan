@@ -2,7 +2,7 @@
 
 **AMPscan** is a homology-aware computer program that reads a short protein fragment (a *peptide*) and estimates how much that fragment looks like a known **antimicrobial peptide (AMP)** versus a peptide that is *not* labeled as an AMP. The estimate is a probability **P(AMP)** between 0 and 1, plus a residue-level plot from a small neural network that shows which amino acids pushed that network’s score.
 
-This article is written as a full walkthrough. It assumes **no** prior knowledge of biological databases, peptide chemistry, or bioinformatics jargon. Every term is defined the first time it appears. Numbers below are **locked** from the finished project (Phases 1–9). They are not estimates.
+This article is a full walkthrough. It assumes **no** prior knowledge of biological databases, peptide chemistry, or bioinformatics jargon. Every term is defined the first time it appears. Numbers below are **locked** evaluation results. They are not estimates.
 
 > [!IMPORTANT]
 > AMPscan is **not** a laboratory assay. A high P(AMP) means “this string of letters resembles DRAMP AMPs more than AMPlify non-AMPs on a homology-held-out test.” It does **not** mean “this peptide will kill bacteria in a dish or in an animal.”
@@ -12,15 +12,15 @@ This article is written as a full walkthrough. It assumes **no** prior knowledge
 
 | | |
 | --- | --- |
-| **Primary score in the demo** | Platt-calibrated Random Forest **P(AMP)** |
-| **Honest headline metric** | Homology-test ROC-AUC **0.9515** (Random Forest) |
-| **Do not quote as the result** | Random-split RF ROC-AUC **0.9791** (homology leakage) |
+| **Primary score** | Platt-calibrated Random Forest **P(AMP)** |
+| **Reported result** | Homology-test ROC-AUC **0.9515** (Random Forest) |
+| **Leakage control (not the reported result)** | Random-split RF ROC-AUC **0.9791** — same peptides, clusters ignored, so close homologs can sit in both train and test |
 | **Code license** | MIT (`LICENSE`) — code only, not the sequence databases |
 | **Data licenses** | DRAMP and AMPlify sequences are **CC BY 4.0** (cite the papers; we do not own them) |
 
 **Related pages in this repository**
 
-- Team study pack (same numbers, oral-defense voice): [`reports/STUDY_GUIDE.md`](reports/STUDY_GUIDE.md) · [`reports/defense/AMPscan_Study_Guide.pdf`](reports/defense/AMPscan_Study_Guide.pdf)
+- Study pack (same numbers): [`reports/STUDY_GUIDE.md`](reports/STUDY_GUIDE.md) · [`reports/defense/AMPscan_Study_Guide.pdf`](reports/defense/AMPscan_Study_Guide.pdf)
 - Honest limits: [`reports/LIMITATIONS.md`](reports/LIMITATIONS.md)
 - Mixed AMP / non-AMP clusters: [`reports/mixed_clusters.md`](reports/mixed_clusters.md)
 - Data licenses and raw counts: [`data/LICENSE_NOTES.md`](data/LICENSE_NOTES.md)
@@ -49,10 +49,10 @@ This article is written as a full walkthrough. It assumes **no** prior knowledge
 16. [Locked homology-test results](#locked-homology-test-results)
 17. [Calibration (making 0.90 mean ~90%)](#calibration-making-090-mean-90)
 18. [Explainability: Integrated Gradients and occlusion](#explainability-integrated-gradients-and-occlusion)
-19. [The Streamlit demo](#the-streamlit-demo)
+19. [The web application and API](#the-web-application--api-v11)
 20. [How to run the demo](#how-to-run-the-demo)
 21. [Worked example: magainin-2 from letters to P(AMP)](#worked-example-magainin-2-from-letters-to-pamp)
-22. [Limitations (say these out loud)](#limitations-say-these-out-loud)
+22. [Limitations](#limitations)
 23. [Glossary](#glossary)
 24. [Repository layout](#repository-layout)
 25. [References](#references)
@@ -61,16 +61,16 @@ This article is written as a full walkthrough. It assumes **no** prior knowledge
 
 ## How to read this page
 
-This README is meant to be read **top to bottom the first time**, like an Arch Wiki article, not like a marketing blurb.
+This README is meant to be read **top to bottom the first time**, not as a marketing blurb.
 
 | If you have… | Read |
 | --- | --- |
-| 10 minutes before a demo | [What the program does](#what-the-program-does-in-one-picture), [Scope](#scope-what-is-in-what-is-out), [Locked results](#locked-homology-test-results), [Limitations](#limitations-say-these-out-loud) |
-| 30 minutes to understand the science | Add [Biology from zero](#biology-from-zero), [Biological databases](#what-a-biological-database-actually-is), [Homology leakage](#the-silent-bug-homology-leakage), [MMseqs2](#walkthrough-clustering-with-mmseqs2) |
-| A judge who asks “what is FASTA / DRAMP / ROC-AUC?” | Jump to that heading, or the [Glossary](#glossary) |
+| 10 minutes | [What the program does](#what-the-program-does-in-one-picture), [Scope](#scope-what-is-in-what-is-out), [Locked results](#locked-homology-test-results), [Limitations](#limitations) |
+| 30 minutes | Add [Biology from zero](#biology-from-zero), [Biological databases](#what-a-biological-database-actually-is), [Homology leakage](#the-silent-bug-homology-leakage), [MMseqs2](#walkthrough-clustering-with-mmseqs2) |
+| A question about FASTA / DRAMP / ROC-AUC | Jump to that heading, or the [Glossary](#glossary) |
 
 > [!NOTE]
-> **Convention used here.** Words in *italics* on first use are being defined. **Bold** marks the term you should be able to say to a judge. Code and file names use `monospace`.
+> **Convention used here.** Words in *italics* on first use are being defined. **Bold** marks key terms. Code and file names use `monospace`.
 
 ---
 
@@ -158,7 +158,7 @@ An **antimicrobial peptide (AMP)** is a short chain that can damage microbes —
 | melittin | honeybee venom | `GIGAVLKVLTTGLPALISWIKRKRQQ` | **yes** (`POS_DRAMP_DRAMP03002`) |
 
 > [!WARNING]
-> Those three peptides are **training examples**, not a held-out “wow” test. The demo shows a banner when you paste them. Do not tell a judge they prove generalization.
+> Those three peptides are **training examples**, not a held-out test of generalization. The demo shows a banner when you paste them.
 
 In **this repository**, “AMP” is a **database label**: the sequence appears in DRAMP General after our filters. It is not a measurement we made in a lab.
 
@@ -180,7 +180,7 @@ Rules that matter here:
 3. A file may contain many records, one after another.
 4. FASTA for **nucleotides** (DNA: A, C, G, T) exists too. AMPscan expects **protein/peptide** letters, not DNA.
 
-You can also paste the raw letters with no `>` header. The demo accepts both. Upload is capped at **50** sequences per request.
+You can also paste the raw letters with no `>` header. The demo accepts both. The HTTP batch API accepts up to **500** peptides per request (`POST /predict-batch`).
 
 **Input rules enforced by the app**
 
@@ -218,7 +218,7 @@ We needed two piles of sequences:
 - **Positives (label = 1, “AMP”)** — peptides that a specialist AMP catalog lists as antimicrobial.
 - **Negatives (label = 0, “non-AMP”)** — peptides that a published AMP-prediction paper already treated as non-AMP.
 
-We did **not** invent a homemade “download UniProt and delete anything with the word antimicrobial” filter. That is easy to get wrong and hard for a judge to audit.
+We did **not** invent a homemade “download UniProt and delete anything with the word antimicrobial” filter. That is easy to get wrong and hard to audit.
 
 ### Positives: DRAMP General
 
@@ -280,7 +280,7 @@ Using AMPlify **negatives** does not mean we claim to beat the AMPlify **paper**
 - Pfam / InterPro — domain families, usually searched with HMMER, not a 3-day neural net
 - Full-length protein annotation
 
-One sentence for a judge: *the official problem is sequence classification with honest confidence; AMP vs non-AMP is the instance we could finish rigorously on an 8 GB laptop.*
+In one sentence: this is **sequence classification with calibrated confidence**; AMP vs non-AMP is the task we finished on a student laptop (8 GB GPU VRAM class).
 
 ---
 
@@ -304,7 +304,7 @@ That failure mode is **homology leakage**. It is the default bug in protein mach
 
 Then a high test score means the model handled **unseen families** (at the 30% identity threshold), not unseen copies of the same family.
 
-The **random split** is still computed, on purpose, as a **leakage control**. Same 21,337 peptides, 70/15/15, seed 42, stratified by class, **clusters ignored**. Random-split RF ROC-AUC **0.9791**. Homology-split RF **0.9515**. The extra points are leakage. **Quote 0.9515.**
+The **random split** is still computed, on purpose, as a **leakage control**. Same 21,337 peptides, 70/15/15, seed 42, stratified by class, **clusters ignored**. Random-split RF ROC-AUC **0.9791**. Homology-split RF **0.9515**. The extra points are leakage. **The reported result is 0.9515.**
 
 ---
 
@@ -314,7 +314,7 @@ The **random split** is still computed, on purpose, as a **leakage control**. Sa
 | --- | --- |
 | Peptides **5–100** amino acids | Full-length proteins |
 | Binary **AMP vs non-AMP** | GO / Pfam / EC / DeepLoc |
-| FASTA paste or upload (max 50) | MIC, hemolysis, in vivo claims |
+| FASTA paste or upload (batch cap 500) | MIC, hemolysis, in vivo claims |
 | Homology cluster split + calibration + CNN explanations | Fine-tuned / LoRA ESM (not run) |
 | Frozen ESM-2 35M and 150M as **checks** | “Bigger LM automatically wins” |
 
@@ -395,7 +395,7 @@ Mapped B/Z/U/O/J → X: **418** positives, **0** negatives. Dropped leftover non
 | Plus AMPlify **imbalanced** (because n_neg &lt; n_pos) | — | +6,579 |
 | After 19 cross-class conflicts resolved (keep AMP) | **10,678** | **10,659** |
 
-Combined clean set: **21,337** peptides. Almost balanced on purpose so accuracy is readable. Real proteomes are **not** 50/50 AMP (see [Limitations](#limitations-say-these-out-loud)).
+Combined clean set: **21,337** peptides. Almost balanced on purpose so accuracy is readable. Real proteomes are **not** 50/50 AMP (see [Limitations](#limitations)).
 
 ### Homology fold sizes
 
@@ -417,7 +417,7 @@ Random-split control (clusters ignored): train 14,936 / val 3,201 / test 3,200.
 
 We used the convenience workflow `easy-cluster` on the combined cleaned FASTA.
 
-### The three flags (memorize)
+### The three flags
 
 ```bash
 mmseqs easy-cluster combined_clean.fasta cluster cluster_tmp \
@@ -451,7 +451,7 @@ A **cluster** is one household. **Every member goes to the same fold** — train
 They **do** mean 30% identity is not a perfect biological wall: a short AMP can sit inside a longer UniProt-like peptide. Mixed-cluster AMPs are shorter on average (**46.6** aa) than mixed-cluster non-AMPs (**62.9** aa). Full table: [`reports/mixed_clusters.md`](reports/mixed_clusters.md).
 
 > [!TIP]
-> **Spoken line.** “We clustered at 30% identity, 80% coverage on the shorter sequence, and never split a cluster. 72 mixed clusters exist; they stay in one fold. That is a documented limit of the threshold, not a silent leak.”
+> We clustered at 30% identity, 80% coverage on the shorter sequence, and never split a cluster. 72 mixed clusters exist; they stay in one fold. That is a documented limit of the threshold, not a silent leak.
 
 ---
 
@@ -589,7 +589,7 @@ ESM-2 150M vs RF: **Δ +0.0006** → **tie**. 150M val ROC-AUC was **0.9372**, s
 
 ---
 
-### SOTA Multi-Tool Benchmark (Cohort 1 Homology Test, n = 3,230)
+### External tool comparison (Cohort 1 homology test, n = 3,230)
 
 We evaluated 4 external published AMP tools under independent environments on our locked test set:
 
@@ -637,7 +637,7 @@ In peptide discovery screens where AMPs are rare, raising the classification thr
 
 ---
 
-**Random-split test (leakage control only — do not lead with these)**
+**Random-split test (leakage control only)**
 
 | Model | ROC-AUC |
 | :--- | ---: |
@@ -646,10 +646,9 @@ In peptide discovery screens where AMPs are rare, raising the classification thr
 | 1D-CNN | 0.9749 |
 
 > [!IMPORTANT]
-> **Quote 0.9515.** If someone quotes 0.979, they are quoting the leaky split.
+> **The reported result is homology-split RF ROC-AUC 0.9515.** Random-split **0.9791** is the leaky control (related peptides can appear in both train and test).
 
-
-Spoken line: *“On this task the expensive embedding is a tie with a forest on charge and composition. We still keep ESM as a check. We ship the RF.”*
+On this task a frozen 150M embedding **ties** a forest on charge and composition. ESM stays as a check; the shipped primary model is the RF.
 
 ---
 
@@ -666,7 +665,7 @@ P_calibrated = sigmoid(a × p_rf + b)
 ```
 
 Locked: **a = 10.0847**, **b = −5.0839**.  
-This is **not** temperature scaling. Do not say “we temperature-scaled the RF.”
+This is **not** temperature scaling (temperature scaling is used only for the CNN and ESM-35M heads).
 
 ### Temperature scaling (CNN and ESM-35M)
 
@@ -714,7 +713,7 @@ Per-residue score = sum of IG over the 21 channels at that position. The heatmap
 
 Zero out one residue, recompute the logit, take Δ = logit_full − logit_occluded. Cheap, local. Pearson correlation IG vs occlusion on the three canonical peptides: magainin-2 **0.89**, LL-37 **0.35**, melittin **0.91**. LL-37’s lower agreement is a reminder that attribution methods disagree; we still do not call either a mechanism.
 
-### Train-set warning — say this every time
+### Training-set examples
 
 | Peptide | Sequence | In homology **train**? | ID |
 | --- | --- | --- | --- |
@@ -735,7 +734,7 @@ AMPscan provides a dual interface: a flagship **Next.js 14 web application** (po
 - **Calibrated Primary Score**: Platt-calibrated Random Forest $P(\text{AMP})$ with secondary Temperature-scaled 1D-CNN.
 - **In-Memory Nearest-Neighbor Matching (`TrainIndex`)**: Compares queries against all 14,904 homology-train sequences in $<0.3$ ms, flagging exact matches and computing % identity so users can distinguish generalization from memorization.
 - **High-Throughput Batch Scoring (`/predict-batch`)**: Paste up to **500 multi-FASTA sequences** with instant single-roundtrip vectorized scoring.
-- **Whole-Protein Sliding-Window Scanner (`/scan`)**: Automatically scans proteins $>100$ aa (up to 5,000 aa) to map active antimicrobial domains (e.g. locating LL-37 in 170-aa hCAP-18).
+- **Sliding-window scanner (`/scan`)**: For chains longer than 100 aa (API cap 5,000 aa), scores peptide-sized windows with the locked RF. Window scores are **not** a protein-level AMP call. High P near the C-terminus of hCAP-18 is LL-37 (a **training** peptide), not a newly discovered domain.
 - **Interactive Mutation Workbench**: Click any residue on the CNN Integrated Gradients track to test *in silico* point mutations in real time.
 
 ### Scientific Evidence Dashboard (`/metrics`)
@@ -753,7 +752,7 @@ AMPscan provides a dual interface: a flagship **Next.js 14 web application** (po
 
 Weights and FASTAs are **not** in the public GitHub snapshot (`.gitignore`). Inference needs the local `models/` and `data/` trees on the machine that trained them.
 
-Primary UI is **one origin: http://localhost:3000**. Next.js serves the site and proxies `/api/*` to FastAPI on :8000. Judges never need to open the API port. Streamlit remains as a fallback.
+Primary UI is **one origin: http://localhost:3000**. Next.js serves the site and proxies `/api/*` to FastAPI on :8000. Streamlit remains as a fallback.
 
 From the project root, `amp-data` env (Python 3.12 + nodejs):
 
@@ -773,21 +772,34 @@ cd frontend && npm run dev
 
 `frontend/.env.local` sets `NEXT_PUBLIC_API_URL=/api`. Dark mode is the default; a Dark/Light toggle sits in the header.
 
+**CLI (no website; same locked RF):**
+
+```bash
+chmod +x scripts/install_ampscan_cli.sh
+./scripts/install_ampscan_cli.sh          # drops `ampscan` into amp-data/bin
+conda activate amp-data                   # or call the wrapper path directly
+
+ampscan predict peptides.fasta -o scores.tsv
+ampscan predict -s GIGKFLHSAKKFGKAFVGEIMNS
+ampscan scan protein.fasta --window 25 --step 1 -o windows.tsv
+```
+
+`predict` is peptides **5–100 aa**. `scan` slides that window on longer chains and is **not** a protein-level AMP call. The HTTP batch cap of 500 is “how many peptides,” not 500 amino acids.
+
 **Fallback (unchanged):**
 
 ```bash
 streamlit run app/streamlit_app.py
 ```
 
-**Suggested live path (judges, &lt;2 min)**
+**Quick demo path**
 
-1. Open **http://localhost:3000/predict** (or click Classify)
-2. Magainin-2 is prefilled: `GIGKFLHSAKKFGKAFVGEIMNS`. Click **Predict**.
-3. Point at **calibrated RF P(AMP)** as the number you trust.
-4. **Read the yellow training-set banner out loud.**
-5. Show the CNN IG residue bar; say it is attribution, not biology.
-6. Open **Metrics**; contrast homology **0.9515** vs random **0.9791**.
-7. Optional: paste a 200-letter string and show the length error.
+1. Open **http://localhost:3000/predict** (or click Classify).
+2. Magainin-2 is prefilled: `GIGKFLHSAKKFGKAFVGEIMNS`. Run it.
+3. The number to trust is **calibrated RF P(AMP)**. Magainin-2 is in the homology **train** fold — the UI banners that.
+4. The residue bar is CNN Integrated Gradients (attribution), not a wet-lab mechanism.
+5. **Metrics** compares homology-test **0.9515** with the random-split leakage control **0.9791**.
+6. Optional: paste a chain longer than 100 aa. `predict` rejects it; `scan` scores windows.
 
 ---
 
@@ -805,11 +817,11 @@ This is the same peptide the demo uses. It is **in train**; the numbers below te
 
 **5. CNN path.** 23 one-hot columns, pad to 100. Convolution → logit → divide by 1.2833 → sigmoid. IG heatmap often highlights K and hydrophobic positions.
 
-**6. What you must say.** “This example is in the homology **training** set. The interesting number is ROC-AUC **0.9515** on **3,230** peptides whose clusters never appeared in train.”
+**6. What this example is not.** Magainin-2 is in the homology **training** set, so this walkthrough teaches the *pipeline*, not held-out performance. Held-out performance is ROC-AUC **0.9515** on **3,230** test peptides whose clusters never appeared in train.
 
 ---
 
-## Limitations (say these out loud)
+## Limitations
 
 Full write-up: [`reports/LIMITATIONS.md`](reports/LIMITATIONS.md).
 
@@ -818,7 +830,7 @@ Full write-up: [`reports/LIMITATIONS.md`](reports/LIMITATIONS.md).
 3. **Negatives are “not annotated as AMP,”** not experimentally inactive. Some labeled non-AMPs might be active if assayed; some AMPs are weak, condition-specific, or synthetic.
 4. **DRAMP General includes synthetic AMPs.** Composition models (the winning RF) are helped by designed amphipathic cations. Untested on a purely natural, phylogenetically new set.
 5. **30% identity / 80% shorter-seq coverage is a control, not a biological independence guarantee.** **72 mixed clusters** exist. Folds stay unsplit; the threshold does not fully separate labels.
-6. **Random-split metrics are inflated.** RF ROC-AUC 0.98 vs 0.95 on the cluster split. Do not quote random-split as generalization.
+6. **Random-split metrics are inflated.** RF ROC-AUC 0.98 vs 0.95 on the cluster split. Random-split is a leakage control, not a generalization result.
 7. **Frozen ESM-2 35M and the 1D-CNN did not beat the RF** (0.945 and 0.942 vs 0.952). Frozen 150M **tied**. Bigger language models are not implied to help on 5–100 aa AMP vs peptide.
 8. **Explainability is model-dependent, not mechanism.** IG on the CNN often highlights K/R and hydrophobics. Magainin-2, LL-37, and melittin are **in train**.
 9. **Out of scope:** full-length proteins, GO, Pfam, EC, MIC, hemolysis, in vivo efficacy. This repo does not include those models and does not promise them.
@@ -890,11 +902,11 @@ frontend/                     Next.js 14 demo (port 3000)
 services/predict_api/         FastAPI locked inference (port 8000)
 app/streamlit_app.py          Streamlit fallback (Predict + Metrics)
 app/README.md                 streamlit command
-scripts/                      reproduction (do not retrain for a pitch)
+scripts/                      dataset, training, CLI (`ampscan`)
 data/LICENSE_NOTES.md         DRAMP / AMPlify licenses and counts
 data/data_manifest.json       checksums / source stamp
 data/splits/*_ids.txt         homology + random ID lists (in git)
-reports/STUDY_GUIDE.md        oral-defense version of this material
+reports/STUDY_GUIDE.md        condensed version of this material
 reports/defense/*.pdf         typeset study guide
 reports/LIMITATIONS.md
 reports/mixed_clusters.md
@@ -904,7 +916,7 @@ reports/phase_*_report.md     locked phase write-ups
 
 **On the training laptop only (gitignored):** `models/`, `data/raw/`, processed FASTAs, embeddings, feature matrices, CNN tensors, `archive/` (leftover enzyme/BLAST notes, not the AMP task).
 
-Do **not** expect FASTAs or `.joblib` / `.pt` weights in a GitHub clone. Reconstruct sequences from DRAMP + Zenodo; weights live on the machine that ran Phases 2–9.
+Do **not** expect FASTAs or `.joblib` / `.pt` weights in a GitHub clone. Reconstruct sequences from DRAMP + Zenodo; weights live on the machine that trained the models.
 
 ---
 
