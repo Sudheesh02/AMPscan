@@ -19,8 +19,8 @@ sys.path.insert(0, str(ROOT / "scripts"))
 sys.path.insert(0, str(ROOT / "services" / "predict_api"))
 sys.path.insert(0, str(ROOT / "scripts" / "benchmark"))
 
-from run_baseline import featurize_many  # noqa: E402
-from scoring import get_artifacts, one_hot, sigmoid  # noqa: E402
+from features import featurize_many  # noqa: E402
+from scoring import get_artifacts  # noqa: E402
 
 
 def parse_labeled_fasta(path: Path):
@@ -47,20 +47,11 @@ def parse_labeled_fasta(path: Path):
 def score_batched(seqs, cnn_batch=256):
     art = get_artifacts()
     t0 = time.perf_counter()
-    X = featurize_many(seqs)
-    p_raw = art.rf.predict_proba(X)[:, 1]
-    p_rf = 1.0 / (1.0 + np.exp(-np.clip(art.platt_a * p_raw + art.platt_b, -60.0, 60.0)))
+    p_rf = art.rf_calibrated_many(seqs)
     t_rf = time.perf_counter() - t0
 
     t1 = time.perf_counter()
-    p_cnn = np.empty(len(seqs), dtype=np.float64)
-    art.cnn.eval()
-    with torch.no_grad():
-        for i in range(0, len(seqs), cnn_batch):
-            chunk = seqs[i : i + cnn_batch]
-            x = torch.from_numpy(np.stack([one_hot(s) for s in chunk])).to(art.device)
-            logit = art.cnn(x).cpu().numpy().reshape(-1)
-            p_cnn[i : i + len(chunk)] = [sigmoid(float(z) / art.t_cnn) for z in logit]
+    p_cnn = art.cnn_calibrated_many(seqs, batch=cnn_batch)
     t_cnn = time.perf_counter() - t1
     return p_rf, p_cnn, t_rf, t_cnn
 

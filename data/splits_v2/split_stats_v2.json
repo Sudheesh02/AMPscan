@@ -1,0 +1,29 @@
+{
+  "kind": "homology_length_matched_v2",
+  "seed": 42,
+  "bin_width_aa": 5,
+  "assertions_passed": true,
+  "splits": {
+    "train": {
+      "n": 7720,
+      "n_pos": 3860,
+      "n_neg": 3860,
+      "median_len_pos": 32.0,
+      "median_len_neg": 32.0
+    },
+    "val": {
+      "n": 1750,
+      "n_pos": 875,
+      "n_neg": 875,
+      "median_len_pos": 31.0,
+      "median_len_neg": 32.0
+    },
+    "test": {
+      "n": 1630,
+      "n_pos": 815,
+      "n_neg": 815,
+      "median_len_pos": 29.0,
+      "median_len_neg": 29.0
+    }
+  }
+}

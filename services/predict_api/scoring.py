@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -14,10 +15,10 @@ import torch
 import torch.nn as nn
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "scripts"))
 
-from run_baseline import (  # noqa: E402
+from features import (  # noqa: E402
     AA20,
+    CNN1D,
     aromatic_fraction,
     featurize_many,
     featurize_one,
@@ -25,7 +26,6 @@ from run_baseline import (  # noqa: E402
     hydrophobic_moment,
     net_charge_pH7,
 )
-from run_cnn1d import CNN1D  # noqa: E402
 
 AA21 = "ACDEFGHIKLMNPQRSTVWYX"
 AA21_INDEX = {a: i for i, a in enumerate(AA21)}
@@ -114,6 +114,10 @@ def strip_fasta_one(raw: str) -> str:
 
 def normalize_aa(raw: str, *, first_record: bool = False) -> tuple[str, list[str]]:
     """Uppercase + B/Z/U/O/J→X. Does not enforce length 5–100."""
+    if not first_record:
+        n_headers = sum(1 for ln in (raw or "").splitlines() if ln.lstrip().startswith(">"))
+        if n_headers > 1:
+            return "", ["multiple FASTA records found; submit one sequence per request or use /predict-batch"]
     s = (strip_fasta_one(raw) if first_record else strip_fasta(raw)).upper().translate(MAP)
     errors: list[str] = []
     if not s:
@@ -339,6 +343,14 @@ class Artifacts:
         self.platt_b = float(platt["b"])
         self.t_cnn = float(tjson["T"])
         self.rf = joblib.load(ROOT / "models" / "baseline" / "homology_rf.joblib")
+        # Avoid joblib/loky thread-pool dispatch overhead on small/medium matrices
+        # and prevent thread oversubscription under concurrent API requests.
+        self.rf.n_jobs = int(os.environ.get("AMPSCAN_RF_JOBS", "1"))
+        req_dev = os.environ.get("AMPSCAN_DEVICE", "auto").strip().lower()
+        if req_dev == "auto":
+            self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        else:
+            self.device = req_dev
         ckpt = torch.load(
             ROOT / "models" / "cnn1d" / "homology_cnn1d.pt",
             map_location="cpu",
@@ -349,9 +361,9 @@ class Artifacts:
         inner.eval()
         for p in inner.parameters():
             p.requires_grad = False
-        self.cnn = CNNOneHot(inner)
+        self.cnn = CNNOneHot(inner).to(self.device)
         self.cnn.eval()
-        self.device = "cpu"
+        self._ig = None
         self.rf_path = "models/baseline/homology_rf.joblib"
         self.cnn_path = "models/cnn1d/homology_cnn1d.pt"
 
@@ -370,7 +382,7 @@ class Artifacts:
 
     @torch.no_grad()
     def cnn_calibrated(self, seq: str) -> tuple[float, float]:
-        x = torch.from_numpy(one_hot(seq)).unsqueeze(0)
+        x = torch.from_numpy(one_hot(seq)).unsqueeze(0).to(self.device)
         logit = float(self.cnn(x).cpu())
         return logit, float(sigmoid(logit / self.t_cnn))
 
@@ -382,18 +394,20 @@ class Artifacts:
         self.cnn.eval()
         for i in range(0, len(seqs), batch):
             chunk = seqs[i : i + batch]
-            x = torch.from_numpy(np.stack([one_hot(s) for s in chunk]))
+            x = torch.from_numpy(np.stack([one_hot(s) for s in chunk])).to(self.device)
             logit = self.cnn(x).cpu().numpy().reshape(-1)
             out[i : i + len(chunk)] = sigmoid_np(logit / self.t_cnn)
         return out
 
     def ig_vector(self, seq: str) -> np.ndarray:
-        from captum.attr import IntegratedGradients
+        if self._ig is None:
+            from captum.attr import IntegratedGradients
 
-        x = torch.from_numpy(one_hot(seq)).unsqueeze(0)
+            self._ig = IntegratedGradients(self.cnn)
+
+        x = torch.from_numpy(one_hot(seq)).unsqueeze(0).to(self.device)
         x.requires_grad_(True)
-        ig = IntegratedGradients(self.cnn)
-        attr = ig.attribute(x, baselines=torch.zeros_like(x), n_steps=32)
+        attr = self._ig.attribute(x, baselines=torch.zeros_like(x), n_steps=32)
         return attr.squeeze(0).sum(dim=0).detach().cpu().numpy()[: len(seq)]
 
 
